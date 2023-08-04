@@ -21,7 +21,19 @@ public class LivroService {
     }
 
     public LivroResponse cadastrar(LivroRequest livroRequest) {
-        // Converte um LivroResponse em um Livro
+		Livro livro = livroRequestToLivro(livroRequest);
+
+		validarLivro(livro);
+        livroRepository.save(livro);
+        return livroToLivroResponse(livro);
+    }
+
+    public List<LivroResponse> listar() {
+        List<Livro> livros = livroRepository.findAll();
+        return livroListToLivroResponseList(livros);
+    }
+
+	private Livro livroRequestToLivro (LivroRequest livroRequest) {
         Livro livro = new Livro();
         livro.setTitulo(livroRequest.getTitulo());
         livro.setAutor(livroRequest.getAutor());
@@ -29,7 +41,10 @@ public class LivroService {
         livro.setIsbn(livroRequest.getIsbn());
         livro.setDescricao(livroRequest.getDescricao());
 
-        // Aplica regras de validação no Livro
+		return livro;
+	}
+
+	private void validarLivro (Livro livro) {
         if (livro.getTitulo() == null) {
             throw new ValidacaoException("O título não pode ser nulo");
         }
@@ -53,36 +68,24 @@ public class LivroService {
         if (livro.getIsbn() != null && livro.getIsbn().length() != 10) {
             throw new ValidacaoException("O ISBN deve ter 10 caracteres");
         }
+	}
 
-        // Salva livro no banco de dados
-        livroRepository.save(livro);
-
-        // Converte um Livro em um LivroResponse
+	private LivroResponse livroToLivroResponse(Livro livro) {		
         LivroResponse livroResponse = new LivroResponse();
         livroResponse.setId(livro.getId());
         livroResponse.setTitulo(livro.getTitulo());
         livroResponse.setAutor(livro.getAutor());
 
-        // Retorna o LivroResponse
-        return livroResponse;
-    }
+		return livroResponse;
+	}
 
-    public List<LivroResponse> listar() {
-        List<Livro> livros = livroRepository.findAll();
-
-        // Converte Livro em LivroResponse
+	private List<LivroResponse> livroListToLivroResponseList (List<Livro> livros) {
         List<LivroResponse> livroResponseList = new ArrayList<>();
         for (Livro livro : livros) {
-            LivroResponse livroResponse = new LivroResponse();
-            livroResponse.setId(livro.getId());
-            livroResponse.setTitulo(livro.getTitulo());
-            livroResponse.setAutor(livro.getAutor());
-
-            livroResponseList.add(livroResponse);
+			livroResponseList.add(livroToLivroResponse(livro));
         }
 
-        // Retorna a lista de LivroResponse
-        return livroResponseList;
-    }
+		return livroResponseList;
+	}
 
 }
